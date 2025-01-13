@@ -13,12 +13,10 @@ struct DevicesList: View {
 
     var body: some View {
         List(devices) { device in
-            Button {
+            Button (action : {
                 onSelect(device)
-            } label: {
-                VStack(alignment: .leading) {
-                    AssignmentText(text: device.name)
-                }
+            }){
+                Text(device.name)
             }
         }
     }

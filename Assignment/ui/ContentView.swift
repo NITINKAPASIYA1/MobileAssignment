@@ -8,33 +8,39 @@
 import SwiftUI
 
 struct ContentView: View {
-    private var viewModel = ContentViewModel()
+    @StateObject private var viewModel = ContentViewModel()
     @State private var path: [DeviceData] = [] // Navigation path
+    @State private var textField: String = ""
+    
+    
 
     var body: some View {
         NavigationStack(path: $path) {
-            Group {
+            Group() {
                 if let computers = viewModel.data, !computers.isEmpty {
-                    DevicesList(devices: computers) { selectedComputer in
+                    DevicesList(devices: viewModel.filterData(textField: textField)) { selectedComputer in
                         viewModel.navigateToDetail(navigateDetail: selectedComputer)
                     }
                 } else {
                     ProgressView("Loading...")
                 }
             }
-            .onChange(of: viewModel.navigateDetail, {
-                let navigate = viewModel.navigateDetail
-                path.append(navigate!)
-            })
+            .searchable(text: $textField)
+            
+            .onChange(of: viewModel.navigateDetail) {
+                navigateDetail in
+                if let navigateDetail = navigateDetail{
+                    path.append(navigateDetail)
+                }
+            }
             .navigationTitle("Devices")
             .navigationDestination(for: DeviceData.self) { computer in
                 DetailView(device: computer)
             }
             .onAppear {
-                let navigate = viewModel.navigateDetail
-                if (navigate != nil) {
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                        path.append(navigate!)
+                if let navigate = viewModel.navigateDetail{
+                    DispatchQueue.main.asyncAfter(deadline:.distantFuture) {
+                        path.append(navigate)
                     }
                 }
             }
